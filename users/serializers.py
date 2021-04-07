@@ -155,3 +155,12 @@ class UploadPhotoSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return {'id': instance.id, 'photo': instance.photo.name}
+
+class GetAllPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoModel
+        fields = '__all__'
+
+    def validate(self, attrs):
+        return attrs
+
