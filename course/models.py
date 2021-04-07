@@ -27,18 +27,28 @@ class BaseModel(models.Model):
 
 
 def upload_path(instance, file_name):
-    a = instance
-    return '/'.join(['banner', file_name])
+    print(instance,'instance')
+    return '/'.join(['video', file_name])
+
+
+class VideosModel(models.Model):
+    title = models.CharField(max_length=50,blank=True, null=True)
+    video = models.FileField(upload_to='upload_path/', blank=True, null=True)
+    uid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+
+    class Meta:
+        db_table = 'tbl_video'
+        ordering = ['id']
 
 
 class CourseModel(BaseModel):
     photo = models.ForeignKey(user_model.PhotoModel, related_name='photo_course', on_delete=models.CASCADE, null=True,
                               blank=True)
     title = models.CharField(max_length=255)
-    old_price = models.IntegerField(default=0)
+    old_price = models.IntegerField(default=0, null=True, blank=True)
     user = models.ForeignKey(
         user_model.User, related_name='author_course_user', on_delete=models.CASCADE, null=True, blank=True)
-    new_price = models.IntegerField(default=0)
+    new_price = models.IntegerField(default=0, null=True, blank=True)
     background = models.ImageField(upload_to='background/', blank=True)
     registration_number = models.IntegerField(default=0)
     type = ArrayField(models.IntegerField(choices=constant.COURSE_TYPE_OPTION,

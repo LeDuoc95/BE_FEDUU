@@ -1,11 +1,12 @@
 from rest_framework import serializers
-from .models import CourseModel, FeelingStudentModel
+from .models import CourseModel, FeelingStudentModel, VideosModel
 from django.db import transaction
 from utils import exception
 from users import models as model_user
 
 
 class GetAllCourseSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CourseModel
         fields = [
@@ -21,16 +22,22 @@ class GetAllCourseSerializer(serializers.ModelSerializer):
             'reason'
         ]
 
+    def to_representation(self, instance):
+        data = super(GetAllCourseSerializer, self).to_representation(instance)
+        user = model_user.User.objects.filter(id=instance.user.id).first()
+        data['user'] = user.username
+        return data
+
 
 class CreateCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseModel
-        fields = ['id', 'photo', 'new_price', 'title', 'type', 'description']
+        fields = ['id', 'photo', 'old_price', 'title', 'type', 'description']
 
     def validate(self, attrs):
         user_id = self.context.get('request').user.id
         user = model_user.User.objects.filter(id=user_id).first()
-        required_fields = ['photo', 'new_price', 'title', 'type', 'description']
+        required_fields = ['photo', 'old_price', 'title', 'type', 'description']
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require!")
@@ -104,3 +111,26 @@ class CreateFeelingStudentModelSerializer(serializers.ModelSerializer):
             print(validated_data, 'validated_datavalidated_datavalidated_data')
             # instance = FeelingStudentModel.objects.create(**validated_data)
             return validated_data
+
+
+
+class UploadVideosSerializer(serializers.Serializer):
+    class Meta:
+        model = VideosModel
+        fields = '__all__'
+
+    def validate(self, attrs):
+        images_user = self.initial_data.get('imagesUser', None)
+        if images_user is None:
+            raise exception.RequireValue(detail="imagesUser is require!")
+        attrs['photo'] = images_user
+        return attrs
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            file_image = VideosModel.objects.create(**validated_data)
+            file_image.save()
+            return file_image
+
+    def to_representation(self, instance):
+        return {'id': instance.id, 'photo': instance.photo.name}

@@ -4,9 +4,9 @@ from utils import exception, permissions
 from rest_framework import generics, status
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import CourseModel, FeelingStudentModel
+from .models import CourseModel, FeelingStudentModel, VideosModel
 from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
-    CreateFeelingStudentModelSerializer
+    CreateFeelingStudentModelSerializer, UploadVideosSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import CursorPagination, PageNumberPagination
 from django.contrib.auth.models import User
@@ -139,3 +139,15 @@ class CreateFeelingStudentModelView(generics.ListAPIView):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         raise exception.APIException()
+
+class UploadVideosView(generics.GenericAPIView):
+    serializer_class = UploadVideosSerializer
+    model = VideosModel
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException
