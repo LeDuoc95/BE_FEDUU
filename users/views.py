@@ -15,7 +15,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.pagination import CursorPagination, PageNumberPagination
 
 from .serializers import GetAllUserSerializer, ChangePasswordSerializer, UpdateUserSerializer, UploadPhotoSerializer, \
-    CreateUserSerializer
+    CreateUserSerializer, GetAllPhotoSerializer
+
 from .managers import UserManager
 from .models import User as UserModel
 from .models import PhotoModel
@@ -266,6 +267,19 @@ class UploadPhotoView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException
+
+
+class GetAllPhotoView(generics.GenericAPIView):
+    serializer_class = GetAllPhotoSerializer
+    model = UserModel
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)

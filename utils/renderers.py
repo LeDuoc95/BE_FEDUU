@@ -11,7 +11,7 @@ class EmberJSONRenderer(JSONRenderer):
         elif data and 'links' in data and data['links']:
             data = {
                 'status': 'OK',
-                'body': data['results'],
+                'body': data['data'],
                 'error': None,
                 'paging': data['links']
             }

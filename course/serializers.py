@@ -1,8 +1,11 @@
+from abc import ABC
+
 from rest_framework import serializers
 from .models import CourseModel, FeelingStudentModel, VideosModel
 from django.db import transaction
 from utils import exception
 from users import models as model_user
+from users.serializers import GetAllPhotoSerializer, GetAllUserSerializer, UpdateUserSerializer
 
 
 class GetAllCourseSerializer(serializers.ModelSerializer):
@@ -19,7 +22,8 @@ class GetAllCourseSerializer(serializers.ModelSerializer):
             'description',
             'photo',
             'status',
-            'reason'
+            'reason',
+            'list_video',
         ]
 
     def to_representation(self, instance):
@@ -29,15 +33,43 @@ class GetAllCourseSerializer(serializers.ModelSerializer):
         return data
 
 
+class GetDetailCourseSerializer(serializers.ModelSerializer):
+    photo = GetAllPhotoSerializer()
+
+    class Meta:
+        model = CourseModel
+        fields = [
+            'id',
+            'deleted',
+            'title',
+            'new_price',
+            'old_price',
+            'type',
+            'description',
+            'photo',
+            'user',
+            'status',
+            'reason',
+            'list_video',
+        ]
+
+    def to_representation(self, instance):
+        data = super(GetDetailCourseSerializer,
+                     self).to_representation(instance)
+        user = model_user.User.objects.filter(id=instance.user.id).first()
+        data['user'] = user.username
+        return data
+
+
 class CreateCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseModel
-        fields = ['id', 'photo', 'old_price', 'title', 'type', 'description']
+        fields = ['id', 'photo', 'old_price', 'title',
+                  'type', 'description', 'list_video']
 
     def validate(self, attrs):
-        user_id = self.context.get('request').user.id
-        user = model_user.User.objects.filter(id=user_id).first()
-        required_fields = ['photo', 'old_price', 'title', 'type', 'description']
+        required_fields = ['photo', 'old_price',
+                           'title', 'type', 'description']
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require!")
@@ -46,12 +78,13 @@ class CreateCourseSerializer(serializers.ModelSerializer):
             title=self.initial_data['title'].strip())
         if check_math.count() > 0:
             raise exception.ExistedValue
-        attrs['user'] = user
         return attrs
 
     def create(self, validated_data):
         with transaction.atomic():
+            user = self.context['request'].user
             instance = CourseModel.objects.create(**validated_data)
+            instance.user = user
             instance.save()
             return instance
 
@@ -59,25 +92,32 @@ class CreateCourseSerializer(serializers.ModelSerializer):
 class UpdateCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseModel
-        fields = "__all__"
+        fields = ['id','photo', 'old_price', 'title',
+                  'type', 'description', 'list_video']
 
     def validate(self, attrs):
+        required_fields = ['photo', 'old_price',
+                           'title', 'type', 'description']
+        for field in required_fields:
+            if self.initial_data.get(field, None) is None:
+                raise exception.RequireValue(detail=f"{field} is require!")
         check_math = CourseModel.objects.filter(
             title=self.initial_data['title'].strip())
         if check_math.count() > 0:
             raise exception.ExistedValue
-        return self.initial_data
+        return attrs
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            # validated_data['id'] = instance.id
-            # instance.title = validated_data['title']
-            # instance.price = validated_data['price']
-            # instance.des = validated_data['des']
-            # instance.is_basic = validated_data['is_basic']
-            # instance.limited_study = validated_data['limited_study']
-            # instance.registration_number = validated_data['registration_number']
-            # instance.save()
+            # for field in validated_data:
+            #     setattr(instance, field, getattr(validated_data,field))
+            instance.photo = validated_data['photo']
+            instance.title = validated_data['title']
+            instance.old_price = validated_data['old_price']
+            instance.type = validated_data['type']
+            instance.list_video = validated_data['list_video']
+            instance.description = validated_data['description']
+            instance.save()
             return instance
 
 
@@ -108,10 +148,8 @@ class CreateFeelingStudentModelSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         with transaction.atomic():
-            print(validated_data, 'validated_datavalidated_datavalidated_data')
             # instance = FeelingStudentModel.objects.create(**validated_data)
             return validated_data
-
 
 
 class UploadVideosSerializer(serializers.Serializer):
@@ -120,17 +158,18 @@ class UploadVideosSerializer(serializers.Serializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        images_user = self.initial_data.get('imagesUser', None)
-        if images_user is None:
-            raise exception.RequireValue(detail="imagesUser is require!")
-        attrs['photo'] = images_user
+        file = self.initial_data.get('file', None)
+        if file is None:
+            raise exception.RequireValue(detail="videoCourse is require!")
+        attrs['video'] = file
+        attrs['title'] = file.name
         return attrs
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            file_image = VideosModel.objects.create(**validated_data)
-            file_image.save()
-            return file_image
+            file_video = VideosModel.objects.create(**validated_data)
+            file_video.save()
+            return file_video
 
     def to_representation(self, instance):
-        return {'id': instance.id, 'photo': instance.photo.name}
+        return {'id': instance.id, 'video': instance.video.name, 'uid': instance.uid, "title": instance.title}

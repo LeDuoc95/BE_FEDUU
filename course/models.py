@@ -27,13 +27,12 @@ class BaseModel(models.Model):
 
 
 def upload_path(instance, file_name):
-    print(instance,'instance')
     return '/'.join(['video', file_name])
 
 
 class VideosModel(models.Model):
-    title = models.CharField(max_length=50,blank=True, null=True)
-    video = models.FileField(upload_to='upload_path/', blank=True, null=True)
+    title = models.CharField(max_length=50, blank=True, null=True)
+    video = models.FileField(upload_to='upload_path', blank=True, null=True)
     uid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
     class Meta:
@@ -57,6 +56,8 @@ class CourseModel(BaseModel):
     status = models.SmallIntegerField(choices=constant.STATUS_COURSE_OPTION,
                                       default=constant.STATUS_COURSE_IS_WAITING, blank=True, null=True)
     reason = models.CharField(max_length=255, default="")
+    list_video = models.CharField(
+        blank=True, null=True, max_length=10000, default="")
 
     class Meta:
         db_table = 'tbl_course'
