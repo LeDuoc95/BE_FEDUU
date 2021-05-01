@@ -2,10 +2,11 @@ from django.urls import path
 from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import GetAllCourseView, CreateCourseView, DeleteCourseView, DetailCourseView, UpdateCourseView, CreateFeelingStudentModelView, GetCourseForLecturerAndAdminView
+from .views import GetAllCourseView, CreateCourseView, DeleteCourseView, DetailCourseView, UpdateCourseView, CreateFeelingStudentModelView, GetCourseForLecturerAndAdminView, UploadVideosView
 
 urlpatterns = [
     path('list-owner', GetCourseForLecturerAndAdminView.as_view(), name='list-course-for-admin'),
+    path('upload-videos', UploadVideosView.as_view()),
     path('list', GetAllCourseView.as_view(), name='list-course'),
     path('create-feeling', CreateFeelingStudentModelView.as_view(),
          name='create-feeling'),
