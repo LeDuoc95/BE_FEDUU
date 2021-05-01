@@ -155,20 +155,14 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class GetAllUserView(generics.GenericAPIView):
-    # queryset = UserModel.objects.all()
+    queryset = UserModel.objects.all()
     serializer_class = GetAllUserSerializer
-
-    # pagination_class = PageNumberPagination
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['title', 'new_price']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['position']
 
     def get(self, request, *args, **kwargs):
-        users = UserModel.objects.all()
-        photos = PhotoModel.objects.prefetch_related('photo_user').filter(photo_user__id=1)
-        print(photos, 'photos')
-        # for user in users:
-        #     print(user.photo,'photo')
-        serializer = GetAllUserSerializer(users, many=True)
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = GetAllUserSerializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
