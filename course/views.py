@@ -9,7 +9,7 @@ from utils import exception, permissions, pagination
 from .models import CourseModel, FeelingStudentModel, VideosModel
 from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
     CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer
-
+from .filter import CourseFilter
 
 
 class GetCourseForLecturerAndAdminView(generics.GenericAPIView):
@@ -42,19 +42,7 @@ class GetAllCourseView(generics.GenericAPIView):
     serializer_class = GetAllCourseSerializer
     authentication_classes = []
     permission_classes = []
-    # pagination_class = pagination.CustomPagination2
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'new_price']
-
-    # def get(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #     # serializer = GetAllCourseSerializer(queryset, many=True)
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(data=serializer.data, status=status.HTTP_200_OK)
+    filterset_class = CourseFilter
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
