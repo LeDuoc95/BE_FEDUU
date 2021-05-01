@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.conf.urls import url
 from .views import GetAllUserView, CreateUserView, ChangePasswordView
-from .views import MyTokenObtainPairView, CustomTokenRefreshView, ResetPasswordView, LoginWithNoPasswordView, UpdateUserView, DeleteUserView, UploadPhotoView, GetAllPhotoView
+from .views import MyTokenObtainPairView, CustomTokenRefreshView, ResetPasswordView, LoginWithNoPasswordView, UpdateUserView, DeleteUserView, UploadPhotoView, GetAllPhotoView, CheckEmailUserView
 
 urlpatterns = [
     path('auth/', include('rest_framework.urls')),
@@ -18,6 +18,7 @@ urlpatterns = [
     # url(r'^list/(?P<id>\d+)$',
     #     DetailCourseView.as_view(), name='detail-user'),
     path('update', UpdateUserView.as_view(), name='update-user'),
+    path('check-email-exist', CheckEmailUserView.as_view(), name='update-user'),
     path('photo', GetAllPhotoView.as_view(), name='get-photo'),
     url(r'^delete/(?P<pk>\d+)$', DeleteUserView.as_view(), name='delete-user'),
 ]

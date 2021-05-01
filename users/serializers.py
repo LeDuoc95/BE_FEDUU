@@ -18,8 +18,16 @@ def validate_password(value: str) -> str:
     """
     return make_password(value, 'salt')
 
+class GetAllPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoModel
+        fields = '__all__'
+
+    def validate(self, attrs):
+        return attrs
 
 class GetAllUserSerializer(serializers.ModelSerializer):
+    photo = GetAllPhotoSerializer()
     class Meta:
         model = UserModel
         fields = [
@@ -30,7 +38,9 @@ class GetAllUserSerializer(serializers.ModelSerializer):
             'position',
             'phone',
             'account_type',
-            'photo'
+            'photo',
+            'slogan',
+            'description',
         ]
 
     def validate(self, attrs):
@@ -156,11 +166,26 @@ class UploadPhotoSerializer(serializers.Serializer):
     def to_representation(self, instance):
         return {'id': instance.id, 'photo': instance.photo.name}
 
-class GetAllPhotoSerializer(serializers.ModelSerializer):
+class CheckEmailUserSerializer(serializers.Serializer):
     class Meta:
-        model = PhotoModel
-        fields = '__all__'
+        model = UserModel
+        fields = []
 
     def validate(self, attrs):
+        email = self.initial_data.get('email', None)
+        if email is None:
+            raise exception.RequireValue(detail="Trường email là bắt buộc!")
+        attrs['email'] = email
         return attrs
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            result = False
+            email_check = UserModel.objects.filter(email=validated_data['email'])
+            if email_check.count() > 0:
+                result = True
+            return { "result": result}
+
+    def to_representation(self, instance):
+        return {'is_exist': instance.get("result")}
 

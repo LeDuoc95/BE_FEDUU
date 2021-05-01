@@ -70,9 +70,11 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, unique=True)
     photo = models.ForeignKey(PhotoModel, related_name='photo_user', on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(
-        blank=True, null=True, max_length=254, unique=True)
-    name = models.CharField(blank=True, null=True, max_length=25)
-    phone = models.CharField(blank=True, null=True, max_length=254)
+        blank=True, null=True, max_length=20, unique=True)
+    name = models.CharField(blank=True, null=True, max_length=30)
+    description = models.CharField(blank=True, null=True, max_length=254, default="")
+    phone = models.CharField(blank=True, null=True, max_length=20)
+    slogan = models.CharField(blank=True, null=True,default="", max_length=50)
     position = models.SmallIntegerField(choices=constant.USER_POSITION_TYPE_OPTION,
                                         default=constant.USER_STUDENT, null=True, blank=True)
 
