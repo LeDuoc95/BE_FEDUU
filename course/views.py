@@ -1,15 +1,15 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from utils import exception, permissions
-from rest_framework import generics, status
-from django.shortcuts import render
-from rest_framework.response import Response
-from .models import CourseModel, FeelingStudentModel
-from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
-    CreateFeelingStudentModelSerializer
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import CursorPagination, PageNumberPagination
-from django.contrib.auth.models import User
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
+
+from utils import exception, permissions, pagination
+from .models import CourseModel, FeelingStudentModel, VideosModel
+from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
+    CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer
+
 
 
 class GetCourseForLecturerAndAdminView(generics.GenericAPIView):
@@ -23,7 +23,8 @@ class GetCourseForLecturerAndAdminView(generics.GenericAPIView):
         if request.user.is_anonymous:
             list_course = CourseModel.objects.filter(deleted=False)
         else:
-            list_course = CourseModel.objects.select_related('user').filter(user_id=request.user.id, deleted=False)
+            list_course = CourseModel.objects.select_related(
+                'user').filter(user_id=request.user.id, deleted=False)
             if request.user.position == 2:
                 list_course = CourseModel.objects.all()
         queryset = self.filter_queryset(list_course)
@@ -41,23 +42,36 @@ class GetAllCourseView(generics.GenericAPIView):
     serializer_class = GetAllCourseSerializer
     authentication_classes = []
     permission_classes = []
-    # pagination_class = PageNumberPagination
+    # pagination_class = pagination.CustomPagination2
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'new_price']
 
+    # def get(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+    #     # serializer = GetAllCourseSerializer(queryset, many=True)
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(data=serializer.data, status=status.HTTP_200_OK)
+
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = GetAllCourseSerializer(queryset, many=True)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-
 class DetailCourseView(generics.ListAPIView):
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+    permission_classes = [permissions.IsLecturerOrAdmin]
     queryset = CourseModel.objects.all()
-    serializer_class = GetAllCourseSerializer
+    serializer_class = GetDetailCourseSerializer
 
     def get_object(self):
         pk = self.kwargs['id']
@@ -69,7 +83,7 @@ class DetailCourseView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         item = self.get_object()
-        serializer = GetAllCourseSerializer(item, many=True)
+        serializer = GetDetailCourseSerializer(item, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
@@ -102,7 +116,7 @@ class UpdateCourseView(generics.GenericAPIView):
         serializer = self.get_serializer(course, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException()
 
 
@@ -138,4 +152,17 @@ class CreateFeelingStudentModelView(generics.ListAPIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        raise exception.APIException()
+
+
+class UploadVideosView(generics.GenericAPIView):
+    serializer_class = UploadVideosSerializer
+    model = VideosModel
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException()
