@@ -33,6 +33,10 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         data['name'] = user.name
         data['phone'] = user.phone
         data['position'] = user.position
+        data['slogan'] = user.slogan
+        data['owner_course'] = user.owner_course
+        data['temporary_user'] = user.temporary_user
+        data['description'] = user.description
         if hasattr(user.photo, 'id') is True:
             data['photo'] = {
                 'id': user.photo.id,
@@ -65,6 +69,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['name'] = self.user.name
         data['phone'] = self.user.phone
         data['position'] = self.user.position
+        data['slogan'] = self.user.slogan
+        data['owner_course'] = self.user.owner_course
+        data['temporary_user'] = self.user.temporary_user
+        data['description'] = self.user.description
         if hasattr(self.user.photo, 'id') is True:
             data['photo'] = {
                 'id': self.user.photo.id,
@@ -122,7 +130,10 @@ class LoginWithNoPassworsSerializer(TokenObtainPairSerializer):
         data['name'] = user.name
         data["phone"] = user.phone
         data['position'] = user.position
-
+        data['slogan'] = user.slogan
+        data['owner_course'] = user.owner_course
+        data['temporary_user'] = user.temporary_user
+        data['description'] = user.description
         if hasattr(user.photo, 'id') is True:
             data['photo'] = {
                 'id': user.photo.id,
