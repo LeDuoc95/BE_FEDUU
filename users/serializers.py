@@ -56,7 +56,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
             'username',
             'position',
             'phone',
-            'account_type'
+            'account_type',
+            'owner_course',
         ]
 
     def validate(self, attrs):

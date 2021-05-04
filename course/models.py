@@ -54,7 +54,7 @@ class CourseModel(BaseModel):
                                           default=constant.COURSE_OTHER), blank=True, null=True)
     description = models.CharField(max_length=500, default="")
     status = models.SmallIntegerField(choices=constant.STATUS_COURSE_OPTION,
-                                      default=constant.STATUS_COURSE_IS_WAITING, blank=True, null=True)
+                                      default=constant.STATUS_COURSE_IS_NEW, blank=True, null=True)
     reason = models.CharField(max_length=255, default="")
     list_video = models.CharField(
         blank=True, null=True, max_length=10000, default="")
