@@ -11,13 +11,10 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.state import token_backend
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import CursorPagination, PageNumberPagination
 
 from .serializers import GetAllUserSerializer, ChangePasswordSerializer, UpdateUserSerializer, UploadPhotoSerializer, \
-    CreateUserSerializer, GetAllPhotoSerializer
+    CreateUserSerializer, GetAllPhotoSerializer, CheckEmailUserSerializer
 
-from .managers import UserManager
 from .models import User as UserModel
 from .models import PhotoModel
 from utils import exception
@@ -278,3 +275,15 @@ class GetAllPhotoView(generics.GenericAPIView):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException
+
+class CheckEmailUserView(generics.GenericAPIView):
+    serializer_class = CheckEmailUserSerializer
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()

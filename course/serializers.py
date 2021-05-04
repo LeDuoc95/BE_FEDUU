@@ -5,11 +5,11 @@ from .models import CourseModel, FeelingStudentModel, VideosModel
 from django.db import transaction
 from utils import exception
 from users import models as model_user
-from users.serializers import GetAllPhotoSerializer, GetAllUserSerializer, UpdateUserSerializer
+from users.serializers import GetAllPhotoSerializer, GetAllUserSerializer
 
 
 class GetAllCourseSerializer(serializers.ModelSerializer):
-
+    photo = GetAllPhotoSerializer()
     class Meta:
         model = CourseModel
         fields = [
@@ -35,7 +35,7 @@ class GetAllCourseSerializer(serializers.ModelSerializer):
 
 class GetDetailCourseSerializer(serializers.ModelSerializer):
     photo = GetAllPhotoSerializer()
-
+    user = GetAllUserSerializer()
     class Meta:
         model = CourseModel
         fields = [
@@ -52,13 +52,6 @@ class GetDetailCourseSerializer(serializers.ModelSerializer):
             'reason',
             'list_video',
         ]
-
-    def to_representation(self, instance):
-        data = super(GetDetailCourseSerializer,
-                     self).to_representation(instance)
-        user = model_user.User.objects.filter(id=instance.user.id).first()
-        data['user'] = user.username
-        return data
 
 
 class CreateCourseSerializer(serializers.ModelSerializer):
@@ -173,3 +166,24 @@ class UploadVideosSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return {'id': instance.id, 'video': instance.video.name, 'uid': instance.uid, "title": instance.title}
+
+class CheckDiscountSerializer(serializers.Serializer):
+    class Meta:
+        model = VideosModel
+        fields = []
+
+    def validate(self, attrs):
+        code_discount = self.initial_data.get('discount', None)
+        if code_discount is None:
+            raise exception.RequireValue(detail="discount là bắt buộc!")
+        attrs['discount'] = code_discount
+        return attrs
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            print(validated_data,'validated_data')
+            # file_video = VideosModel.objects.create(**validated_data)
+            return {'result': False}
+
+    def to_representation(self, instance):
+        return {'is_valid': instance.get('result')}

@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import GetAllCourseView, CreateCourseView, DeleteCourseView, DetailCourseView, UpdateCourseView, CreateFeelingStudentModelView, GetCourseForLecturerAndAdminView, UploadVideosView
+from .views import GetAllCourseView, CreateCourseView, DeleteCourseView, DetailCourseView, UpdateCourseView, CreateFeelingStudentModelView, GetCourseForLecturerAndAdminView, UploadVideosView, CheckDiscountView
 
 urlpatterns = [
     path('list-owner', GetCourseForLecturerAndAdminView.as_view(), name='list-course-for-admin'),
@@ -15,5 +15,7 @@ urlpatterns = [
     path('create', CreateCourseView.as_view(), name='create-course'),
     url(r'^update/(?P<id>\d+)$', UpdateCourseView.as_view(), name='update-course'),
     url(r'^delete/(?P<id>\d+)$', DeleteCourseView.as_view(), name='delete-course'),
+    path('check-discount', CheckDiscountView.as_view(), name='check-discount'),
+
 ]
 #  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
