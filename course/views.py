@@ -8,8 +8,8 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from utils import exception, permissions, pagination
 from .models import CourseModel, FeelingStudentModel, VideosModel
 from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
-    CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer
-
+    CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer, CheckDiscountSerializer, ActivateCourseSerializer
+from .filter import CourseFilter
 
 
 class GetCourseForLecturerAndAdminView(generics.GenericAPIView):
@@ -42,19 +42,7 @@ class GetAllCourseView(generics.GenericAPIView):
     serializer_class = GetAllCourseSerializer
     authentication_classes = []
     permission_classes = []
-    # pagination_class = pagination.CustomPagination2
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'new_price']
-
-    # def get(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #     # serializer = GetAllCourseSerializer(queryset, many=True)
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(data=serializer.data, status=status.HTTP_200_OK)
+    filterset_class = CourseFilter
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -162,6 +150,30 @@ class UploadVideosView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()
+
+class CheckDiscountView(generics.GenericAPIView):
+    serializer_class = CheckDiscountSerializer
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()
+
+class activateCourseView(generics.GenericAPIView):
+    serializer_class = ActivateCourseSerializer
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)

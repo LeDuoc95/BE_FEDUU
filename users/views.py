@@ -11,13 +11,10 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.state import token_backend
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import CursorPagination, PageNumberPagination
 
 from .serializers import GetAllUserSerializer, ChangePasswordSerializer, UpdateUserSerializer, UploadPhotoSerializer, \
-    CreateUserSerializer, GetAllPhotoSerializer
+    CreateUserSerializer, GetAllPhotoSerializer, CheckEmailUserSerializer
 
-from .managers import UserManager
 from .models import User as UserModel
 from .models import PhotoModel
 from utils import exception
@@ -36,6 +33,10 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         data['name'] = user.name
         data['phone'] = user.phone
         data['position'] = user.position
+        data['slogan'] = user.slogan
+        data['owner_course'] = user.owner_course
+        data['temporary_user'] = user.temporary_user
+        data['description'] = user.description
         if hasattr(user.photo, 'id') is True:
             data['photo'] = {
                 'id': user.photo.id,
@@ -68,6 +69,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['name'] = self.user.name
         data['phone'] = self.user.phone
         data['position'] = self.user.position
+        data['slogan'] = self.user.slogan
+        data['owner_course'] = self.user.owner_course
+        data['temporary_user'] = self.user.temporary_user
+        data['description'] = self.user.description
         if hasattr(self.user.photo, 'id') is True:
             data['photo'] = {
                 'id': self.user.photo.id,
@@ -125,7 +130,10 @@ class LoginWithNoPassworsSerializer(TokenObtainPairSerializer):
         data['name'] = user.name
         data["phone"] = user.phone
         data['position'] = user.position
-
+        data['slogan'] = user.slogan
+        data['owner_course'] = user.owner_course
+        data['temporary_user'] = user.temporary_user
+        data['description'] = user.description
         if hasattr(user.photo, 'id') is True:
             data['photo'] = {
                 'id': user.photo.id,
@@ -155,20 +163,14 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class GetAllUserView(generics.GenericAPIView):
-    # queryset = UserModel.objects.all()
+    queryset = UserModel.objects.all()
     serializer_class = GetAllUserSerializer
-
-    # pagination_class = PageNumberPagination
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['title', 'new_price']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['position']
 
     def get(self, request, *args, **kwargs):
-        users = UserModel.objects.all()
-        photos = PhotoModel.objects.prefetch_related('photo_user').filter(photo_user__id=1)
-        print(photos, 'photos')
-        # for user in users:
-        #     print(user.photo,'photo')
-        serializer = GetAllUserSerializer(users, many=True)
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = GetAllUserSerializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
@@ -284,3 +286,15 @@ class GetAllPhotoView(generics.GenericAPIView):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException
+
+class CheckEmailUserView(generics.GenericAPIView):
+    serializer_class = CheckEmailUserSerializer
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()

@@ -18,8 +18,16 @@ def validate_password(value: str) -> str:
     """
     return make_password(value, 'salt')
 
+class GetAllPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoModel
+        fields = '__all__'
+
+    def validate(self, attrs):
+        return attrs
 
 class GetAllUserSerializer(serializers.ModelSerializer):
+    photo = GetAllPhotoSerializer()
     class Meta:
         model = UserModel
         fields = [
@@ -30,7 +38,11 @@ class GetAllUserSerializer(serializers.ModelSerializer):
             'position',
             'phone',
             'account_type',
-            'photo'
+            'photo',
+            'slogan',
+            'description',
+            'owner_course',
+            'temporary_user',
         ]
 
     def validate(self, attrs):
@@ -46,7 +58,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
             'username',
             'position',
             'phone',
-            'account_type'
+            'account_type',
+            'owner_course',
         ]
 
     def validate(self, attrs):
@@ -54,6 +67,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require!")
+        is_teacher = self.initial_data.get('isTeacher', None)
+        if is_teacher is True:
+            attrs['temporary_user'] = True
+            attrs['position'] = 1
         return attrs
 
     def create(self, validated_data):
@@ -113,6 +130,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require")
+        description = self.initial_data.get('description', None)
+        slogan = self.initial_data.get('slogan', None)
+        if description is None:
+            attrs['description'] = ""
+
+        if slogan is None:
+            attrs['description'] = ""
         return attrs
 
     def update(self, instance, validated_data):
@@ -156,11 +180,26 @@ class UploadPhotoSerializer(serializers.Serializer):
     def to_representation(self, instance):
         return {'id': instance.id, 'photo': instance.photo.name}
 
-class GetAllPhotoSerializer(serializers.ModelSerializer):
+class CheckEmailUserSerializer(serializers.Serializer):
     class Meta:
-        model = PhotoModel
-        fields = '__all__'
+        model = UserModel
+        fields = []
 
     def validate(self, attrs):
+        email = self.initial_data.get('email', None)
+        if email is None:
+            raise exception.RequireValue(detail="Trường email là bắt buộc!")
+        attrs['email'] = email
         return attrs
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            result = False
+            email_check = UserModel.objects.filter(email=validated_data['email'])
+            if email_check.count() > 0:
+                result = True
+            return { "result": result}
+
+    def to_representation(self, instance):
+        return {'is_exist': instance.get("result")}
 
