@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.conf.urls import url
 from .views import GetAllUserView, CreateUserView, ChangePasswordView
-from .views import MyTokenObtainPairView, CustomTokenRefreshView, ResetPasswordView, LoginWithNoPasswordView, UpdateUserView, DeleteUserView, UploadPhotoView, GetAllPhotoView, CheckEmailUserView
+from .views import MyTokenObtainPairView, CustomTokenRefreshView, ResetPasswordView, LoginWithNoPasswordView, UpdateUserView, DeleteUserView, UploadPhotoView, GetAllPhotoView, CheckEmailUserView, GetAllTemporaryView, ChangeUserTemporaryView
 
 urlpatterns = [
     path('auth/', include('rest_framework.urls')),
@@ -21,4 +21,6 @@ urlpatterns = [
     path('check-email-exist', CheckEmailUserView.as_view(), name='update-user'),
     path('photo', GetAllPhotoView.as_view(), name='get-photo'),
     url(r'^delete/(?P<pk>\d+)$', DeleteUserView.as_view(), name='delete-user'),
+    path('list-temporary', GetAllTemporaryView.as_view(), name='list-temporary'),
+    url(r'^update-temporary/(?P<id>\d+)$', ChangeUserTemporaryView.as_view(), name='update-user-course'),
 ]

@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from utils import exception, permissions, pagination
 from .models import CourseModel, FeelingStudentModel, VideosModel
 from .serializers import GetAllCourseSerializer, CreateCourseSerializer, DeleteCourseSerializer, UpdateCourseSerializer, \
-    CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer, CheckDiscountSerializer
+    CreateFeelingStudentModelSerializer, UploadVideosSerializer, GetDetailCourseSerializer, CheckDiscountSerializer, ActivateCourseSerializer, GetAllCourseTemporarySerializer, ChangeCourseTemporarySerializer
 from .filter import CourseFilter
 
 
@@ -162,6 +162,49 @@ class CheckDiscountView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()
+
+class activateCourseView(generics.GenericAPIView):
+    serializer_class = ActivateCourseSerializer
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()
+
+class GetAllCourseTemporaryView(generics.GenericAPIView):
+    queryset = CourseModel.objects.filter(course_temporary=True)
+    serializer_class = GetAllCourseTemporarySerializer
+    model = CourseModel
+    permission_classes = [permissions.IsAdmin]
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = GetAllCourseTemporarySerializer(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+class ChangeCourseTemporaryView(generics.GenericAPIView):
+    serializer_class = ChangeCourseTemporarySerializer
+    permission_classes = [permissions.IsAdmin]
+
+    def get_object(self):
+        pk = self.kwargs['id']
+        course = CourseModel.objects.filter(pk=pk)
+        if course.count() > 0:
+            return course.first()
+        raise exception.DoesNotExist(
+            detail=f"course with id {pk} does not exist")
+
+    def put(self, request, *args, **kwargs):
+        course = self.get_object()
+        serializer = self.get_serializer(course, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)

@@ -1,8 +1,10 @@
 from abc import ABC
 
 from rest_framework import serializers
-from .models import CourseModel, FeelingStudentModel, VideosModel
+from .models import CourseModel, FeelingStudentModel, VideosModel, KeyActiveModel
 from django.db import transaction
+import uuid
+
 from utils import exception
 from users import models as model_user
 from users.serializers import GetAllPhotoSerializer, GetAllUserSerializer
@@ -77,6 +79,10 @@ class CreateCourseSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user = self.context['request'].user
             instance = CourseModel.objects.create(**validated_data)
+            id = instance.id
+            for key_active in range(10):
+                create_active_key = KeyActiveModel.objects.create(**{'course_id':id})
+                create_active_key.save()
             instance.user = user
             instance.save()
             return instance
@@ -187,3 +193,54 @@ class CheckDiscountSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return {'is_valid': instance.get('result')}
+
+class ActivateCourseSerializer(serializers.Serializer):
+    class Meta:
+        model = KeyActiveModel
+        fields = []
+
+    def validate(self, attrs):
+        return attrs
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            code_activate = self.initial_data.get('key_active', None)
+            match_course = KeyActiveModel.objects.filter(key_active__exact=code_activate).first()
+            if match_course is None:
+                raise exception.DoesNotExist(detail="Mã không tồn tại hoặc đã được sử dụng")
+            course = match_course.course
+            match_course.delete()
+            id = course.id
+            create_active_key = KeyActiveModel.objects.create(**{'course_id': id})
+            create_active_key.save()
+            return course
+
+    def to_representation(self, instance):
+        return {'id': instance.id, 'title': instance.title}
+
+class GetAllCourseTemporarySerializer(serializers.ModelSerializer):
+    photo = GetAllPhotoSerializer()
+    class Meta:
+        model = CourseModel
+        fields = ['id','photo', 'title','user',
+                  'type']
+
+    def to_representation(self, instance):
+        data = super(GetAllCourseTemporarySerializer, self).to_representation(instance)
+        user = model_user.User.objects.filter(id=instance.user.id).first()
+        data['user'] = user.username
+        return data
+
+class ChangeCourseTemporarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseModel
+        fields = ['id']
+
+    # def validate(self, attrs):
+    #     return attrs
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            instance.course_temporary = False
+            instance.save()
+            return instance

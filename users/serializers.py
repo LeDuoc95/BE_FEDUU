@@ -56,7 +56,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
             'username',
             'position',
             'phone',
-            'account_type'
+            'account_type',
+            'owner_course',
         ]
 
     def validate(self, attrs):
@@ -189,3 +190,25 @@ class CheckEmailUserSerializer(serializers.Serializer):
     def to_representation(self, instance):
         return {'is_exist': instance.get("result")}
 
+class GetAllTemporarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = [
+            'id',
+            'email',
+            'name',
+            'username',
+            'owner_course',
+            'user_temporary',
+        ]
+
+class ChangeUserTemporarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = ['id', 'user_temporary']
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            instance.user_temporary = False
+            instance.save()
+            return instance

@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User as User_auth
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -13,8 +12,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import GetAllUserSerializer, ChangePasswordSerializer, UpdateUserSerializer, UploadPhotoSerializer, \
-    CreateUserSerializer, GetAllPhotoSerializer, CheckEmailUserSerializer
-
+    CreateUserSerializer, GetAllPhotoSerializer, CheckEmailUserSerializer, GetAllTemporarySerializer, ChangeUserTemporarySerializer
+from utils import exception, permissions
 from .models import User as UserModel
 from .models import PhotoModel
 from utils import exception
@@ -283,6 +282,37 @@ class CheckEmailUserView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        raise exception.APIException()
+
+class GetAllTemporaryView(generics.GenericAPIView):
+    queryset = UserModel.objects.filter(user_temporary=True, position=1)
+    serializer_class = GetAllTemporarySerializer
+    model = UserModel
+    permission_classes = [permissions.IsAdmin]
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = GetAllTemporarySerializer(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+class ChangeUserTemporaryView(generics.GenericAPIView):
+    serializer_class = ChangeUserTemporarySerializer
+    permission_classes = [permissions.IsAdmin]
+
+    def get_object(self):
+        pk = self.kwargs['id']
+        user = UserModel.objects.filter(pk=pk)
+        if user.count() > 0:
+            return user.first()
+        raise exception.DoesNotExist(
+            detail=f"user with id {pk} does not exist")
+
+    def put(self, request, *args, **kwargs):
+        course = self.get_object()
+        serializer = self.get_serializer(course, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
