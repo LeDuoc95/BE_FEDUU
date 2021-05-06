@@ -57,7 +57,8 @@ class GetAllCourseView(generics.GenericAPIView):
 
 class DetailCourseView(generics.ListAPIView):
     parser_classes = [JSONParser, FormParser, MultiPartParser]
-    permission_classes = [permissions.IsLecturerOrAdmin]
+    authentication_classes = []
+    permission_classes = []
     queryset = CourseModel.objects.all()
     serializer_class = GetDetailCourseSerializer
 
@@ -77,7 +78,7 @@ class DetailCourseView(generics.ListAPIView):
 
 class CreateCourseView(generics.CreateAPIView):
     serializer_class = CreateCourseSerializer
-    permission_classes = []
+    permission_classes = [permissions.IsLecturerOrAdmin]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -89,7 +90,7 @@ class CreateCourseView(generics.CreateAPIView):
 
 class UpdateCourseView(generics.GenericAPIView):
     serializer_class = UpdateCourseSerializer
-    permission_classes = []
+    permission_classes = [permissions.IsLecturerOrAdmin]
 
     def get_object(self):
         pk = self.kwargs['id']
@@ -111,7 +112,7 @@ class UpdateCourseView(generics.GenericAPIView):
 class DeleteCourseView(generics.DestroyAPIView):
     serializer_class = DeleteCourseSerializer
     queryset = CourseModel.objects.all()
-    permission_classes = []
+    permission_classes = [permissions.IsLecturerOrAdmin]
 
     def get_object(self):
         pk = self.kwargs['id']
@@ -146,7 +147,7 @@ class CreateFeelingStudentModelView(generics.ListAPIView):
 class UploadVideosView(generics.GenericAPIView):
     serializer_class = UploadVideosSerializer
     model = VideosModel
-    permission_classes = []
+    permission_classes = [permissions.IsLecturerOrAdmin]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data)
