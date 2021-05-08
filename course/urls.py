@@ -5,7 +5,8 @@ from django.conf.urls.static import static
 from .views import GetAllCourseView, CreateCourseView, DeleteCourseView, DetailCourseView, UpdateCourseView, CreateFeelingStudentModelView, GetCourseForLecturerAndAdminView, UploadVideosView, CheckDiscountView, activateCourseView, GetAllCourseTemporaryView, ChangeCourseTemporaryView
 
 urlpatterns = [
-    path('list-owner', GetCourseForLecturerAndAdminView.as_view(), name='list-course-for-admin'),
+    path('list-owner', GetCourseForLecturerAndAdminView.as_view(),
+         name='list-course-for-admin'),
     path('upload-videos', UploadVideosView.as_view()),
     path('list', GetAllCourseView.as_view(), name='list-course'),
     path('create-feeling', CreateFeelingStudentModelView.as_view(),
@@ -17,8 +18,10 @@ urlpatterns = [
     url(r'^delete/(?P<id>\d+)$', DeleteCourseView.as_view(), name='delete-course'),
     path('check-discount', CheckDiscountView.as_view(), name='check-discount'),
     path('activate', activateCourseView.as_view(), name='check-activate-course'),
-    path('list-temporary', GetAllCourseTemporaryView.as_view(), name='list-course-temporary'),
+    path('list-temporary', GetAllCourseTemporaryView.as_view(),
+         name='list-course-temporary'),
     # path('change-course-temporary', ChangeCourseTemporaryView.as_view(), name='list-course-temporary'),
-    url(r'^update-temporary/(?P<id>\d+)$', ChangeCourseTemporaryView.as_view(), name='update-temporary-course'),
+    url(r'^update-temporary/(?P<id>\d+)$',
+        ChangeCourseTemporaryView.as_view(), name='update-temporary-course'),
 ]
 #  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

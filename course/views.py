@@ -55,6 +55,7 @@ class GetAllCourseView(generics.GenericAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+
 class DetailCourseView(generics.ListAPIView):
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     permission_classes = [permissions.IsLecturerOrAdmin]
@@ -155,6 +156,7 @@ class UploadVideosView(generics.GenericAPIView):
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException()
 
+
 class CheckDiscountView(generics.GenericAPIView):
     serializer_class = CheckDiscountSerializer
     permission_classes = []
@@ -166,6 +168,7 @@ class CheckDiscountView(generics.GenericAPIView):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException()
+
 
 class activateCourseView(generics.GenericAPIView):
     serializer_class = ActivateCourseSerializer
@@ -179,6 +182,7 @@ class activateCourseView(generics.GenericAPIView):
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         raise exception.APIException()
 
+
 class GetAllCourseTemporaryView(generics.GenericAPIView):
     queryset = CourseModel.objects.filter(course_temporary=True)
     serializer_class = GetAllCourseTemporarySerializer
@@ -189,6 +193,7 @@ class GetAllCourseTemporaryView(generics.GenericAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = GetAllCourseTemporarySerializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
 
 class ChangeCourseTemporaryView(generics.GenericAPIView):
     serializer_class = ChangeCourseTemporarySerializer

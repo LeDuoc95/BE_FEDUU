@@ -52,9 +52,11 @@ class MyUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
         return self._create_user(username, email, password, **extra_fields)
 
+
 def upload_path(instance, file_name):
     a = instance
     return '/'.join(['photo', 'local', file_name])
+
 
 class PhotoModel(models.Model):
     photo = models.ImageField(blank=True, null=True, upload_to=upload_path)
@@ -64,18 +66,22 @@ class PhotoModel(models.Model):
         db_table = 'tbl_photo'
         ordering = ['id']
 
+
 class User(AbstractUser):
     email = models.EmailField(max_length=254, unique=True)
-    photo = models.ForeignKey(PhotoModel, related_name='photo_user', on_delete=models.CASCADE, null=True, blank=True)
+    photo = models.ForeignKey(PhotoModel, related_name='photo_user',
+                              on_delete=models.CASCADE, null=True, blank=True)
     username = models.CharField(
         blank=True, null=True, max_length=20, unique=True)
     name = models.CharField(blank=True, null=True, max_length=30)
-    description = models.CharField(blank=True, null=True, max_length=254, default="")
+    description = models.CharField(
+        blank=True, null=True, max_length=254, default="")
     phone = models.CharField(blank=True, null=True, max_length=20)
-    slogan = models.CharField(blank=True, null=True,default="", max_length=50)
+    slogan = models.CharField(blank=True, null=True, default="", max_length=50)
     position = models.SmallIntegerField(choices=constant.USER_POSITION_TYPE_OPTION,
                                         default=constant.USER_STUDENT, null=True, blank=True)
-    owner_course = ArrayField(models.IntegerField(blank=True, null=True), blank=True, null=True)
+    owner_course = ArrayField(models.IntegerField(
+        blank=True, null=True), blank=True, null=True)
     account_type = models.SmallIntegerField(choices=constant.ACCOUNT_TYPE,
                                             default=constant.ACCOUNT_TYPE_NORMAL, null=True, blank=True)
     user_temporary = models.BooleanField(default=True)

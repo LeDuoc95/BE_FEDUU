@@ -12,6 +12,7 @@ from users.serializers import GetAllPhotoSerializer, GetAllUserSerializer
 
 class GetAllCourseSerializer(serializers.ModelSerializer):
     photo = GetAllPhotoSerializer()
+
     class Meta:
         model = CourseModel
         fields = [
@@ -38,6 +39,7 @@ class GetAllCourseSerializer(serializers.ModelSerializer):
 class GetDetailCourseSerializer(serializers.ModelSerializer):
     photo = GetAllPhotoSerializer()
     user = GetAllUserSerializer()
+
     class Meta:
         model = CourseModel
         fields = [
@@ -81,7 +83,8 @@ class CreateCourseSerializer(serializers.ModelSerializer):
             instance = CourseModel.objects.create(**validated_data)
             id = instance.id
             for key_active in range(10):
-                create_active_key = KeyActiveModel.objects.create(**{'course_id':id})
+                create_active_key = KeyActiveModel.objects.create(
+                    **{'course_id': id})
                 create_active_key.save()
             instance.user = user
             instance.save()
@@ -91,7 +94,7 @@ class CreateCourseSerializer(serializers.ModelSerializer):
 class UpdateCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseModel
-        fields = ['id','photo', 'old_price', 'title',
+        fields = ['id', 'photo', 'old_price', 'title',
                   'type', 'description', 'list_video']
 
     def validate(self, attrs):
@@ -173,6 +176,7 @@ class UploadVideosSerializer(serializers.Serializer):
     def to_representation(self, instance):
         return {'id': instance.id, 'video': instance.video.name, 'uid': instance.uid, "title": instance.title}
 
+
 class CheckDiscountSerializer(serializers.Serializer):
     class Meta:
         model = VideosModel
@@ -187,12 +191,13 @@ class CheckDiscountSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
-            print(validated_data,'validated_data')
+            print(validated_data, 'validated_data')
             # file_video = VideosModel.objects.create(**validated_data)
             return {'result': False}
 
     def to_representation(self, instance):
         return {'is_valid': instance.get('result')}
+
 
 class ActivateCourseSerializer(serializers.Serializer):
     class Meta:
@@ -205,31 +210,38 @@ class ActivateCourseSerializer(serializers.Serializer):
     def create(self, validated_data):
         with transaction.atomic():
             code_activate = self.initial_data.get('key_active', None)
-            match_course = KeyActiveModel.objects.filter(key_active__exact=code_activate).first()
+            match_course = KeyActiveModel.objects.filter(
+                key_active__exact=code_activate).first()
             if match_course is None:
-                raise exception.DoesNotExist(detail="Mã không tồn tại hoặc đã được sử dụng")
+                raise exception.DoesNotExist(
+                    detail="Mã không tồn tại hoặc đã được sử dụng")
             course = match_course.course
             match_course.delete()
             id = course.id
-            create_active_key = KeyActiveModel.objects.create(**{'course_id': id})
+            create_active_key = KeyActiveModel.objects.create(
+                **{'course_id': id})
             create_active_key.save()
             return course
 
     def to_representation(self, instance):
         return {'id': instance.id, 'title': instance.title}
 
+
 class GetAllCourseTemporarySerializer(serializers.ModelSerializer):
     photo = GetAllPhotoSerializer()
+
     class Meta:
         model = CourseModel
-        fields = ['id','photo', 'title','user',
+        fields = ['id', 'photo', 'title', 'user',
                   'type']
 
     def to_representation(self, instance):
-        data = super(GetAllCourseTemporarySerializer, self).to_representation(instance)
+        data = super(GetAllCourseTemporarySerializer,
+                     self).to_representation(instance)
         user = model_user.User.objects.filter(id=instance.user.id).first()
         data['user'] = user.username
         return data
+
 
 class ChangeCourseTemporarySerializer(serializers.ModelSerializer):
     class Meta:

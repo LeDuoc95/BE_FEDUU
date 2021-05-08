@@ -41,6 +41,8 @@ class GetAllUserSerializer(serializers.ModelSerializer):
             'photo',
             'slogan',
             'description',
+            'owner_course',
+            'temporary_user',
         ]
 
     def validate(self, attrs):
@@ -65,6 +67,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require!")
+        is_teacher = self.initial_data.get('isTeacher', None)
+        if is_teacher is True:
+            attrs['temporary_user'] = True
+            attrs['position'] = 1
         return attrs
 
     def create(self, validated_data):
@@ -124,6 +130,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         for field in required_fields:
             if self.initial_data.get(field, None) is None:
                 raise exception.RequireValue(detail=f"{field} is require")
+        description = self.initial_data.get('description', None)
+        slogan = self.initial_data.get('slogan', None)
+        if description is None:
+            attrs['description'] = ""
+
+        if slogan is None:
+            attrs['description'] = ""
         return attrs
 
     def update(self, instance, validated_data):
